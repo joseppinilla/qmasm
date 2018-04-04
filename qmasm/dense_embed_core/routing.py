@@ -38,6 +38,8 @@ BREAK_SHARING = 20      # threshold for sharing cost to assert failed routing
 RATE_FORGET = 0.001     # forget rate for hist_cost: as exp(-RATE_FORGET)
 
 
+xrange = range
+
 def initialize(qbitAdj):
     '''Initialise routing solver. Only call once per embedding trial'''
     global _paths, _allPaths, _curr_used, _is_shared
@@ -166,7 +168,7 @@ def bestPath(route, reserved):
     global _paths, _curr_used
 
     if route[0] == route[1]:
-        print 'bestPath ERROR: start is same as goal!'
+        print ('bestPath ERROR: start is same as goal!')
         return 0
 
     # initialise path
@@ -191,7 +193,7 @@ def bestPath(route, reserved):
                 break
 
     if not check:
-        print 'bestPath ERROR: ran out of paths... unconnected graph?'
+        print ('bestPath ERROR: ran out of paths... unconnected graph?')
         return 0
 
     # reset values
@@ -265,7 +267,7 @@ def Routing(routes, reserved, writePath=''):
 
     ## Negotiated Congestion and Routing
 
-    _is_shared[_is_shared.keys()[0]] = True    # set loop condition
+    _is_shared[list(_is_shared.keys())[0]] = True    # set loop condition
 
     rt_set = set([it for rt in routes for it in rt])    # list of route qbits
     res_qbits = set()   # set of reserved qubits.

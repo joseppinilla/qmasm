@@ -13,7 +13,7 @@ import pulp     # python LP and MIP classes and binding
 from random import shuffle
 from copy import copy as cp
 import os    # only for deleting LP solution file
-
+from functools import reduce
 
 ### HANDLES ###
 
@@ -41,7 +41,7 @@ def writeSol(models, max_model, fname):
     try:
         fp = open(fname, 'w')
     except:
-        print 'Failed to open file for writing: %s' % fname
+        print ('Failed to open file for writing: %s' % fname)
         return False
 
     # header
@@ -326,15 +326,15 @@ def solToModels(sol, prob_dict):
     l = len(keys)   # number of chains
 
     if False:   # for debugging
-        print '*'*30
-        print 'Chains:\n'
+        print ('*'*30)
+        print ('Chains:\n')
         for i in xrange(len(chains)):
             ch = chains[i]
             n, m = int(round(sol['n'][i])), int(round(sol['m'][i]))
-            print 'n: %d \tm: %d' % (n, m)
-            print 'nodes: %s' % str(ch)
-            print 'ends: %s' % str(keys[i])
-            print 'qubits: %s\n' % str(chain_qbits[i])
+            print ('n: %d \tm: %d' % (n, m))
+            print ('nodes: %s' % str(ch))
+            print ('ends: %s' % str(keys[i]))
+            print ('qubits: %s\n' % str(chain_qbits[i]))
 
     # initialize model dicts
     models = {}
@@ -452,18 +452,18 @@ def solveLP(prob_dict, verbose):
         prob.writeLP(LP_FILE)
         fn = LP_FILE
     except:
-        print 'Invalid LP filename'
+        print ('Invalid LP filename')
         prob.writeLP('./lp-sol.lp')
         fn = './lp-sol.lp'
     if verbose:
-        print 'Saved to file: %s' % fn
+        print ('Saved to file: %s' % fn)
 
-    print '\n\n'
+    print ('\n\n')
     if USE_DEFAULT:
         status = prob.solve()
     else:
         status = prob.solve(solver=pulp.GLPK_CMD(msg=verbose))
-    print '\n\n'
+    print ('\n\n')
 
     # check solution status
     if verbose:
@@ -478,18 +478,18 @@ def solveLP(prob_dict, verbose):
     # delete solution file
     if DEL_LP_FILE:
         if verbose:
-            print 'Deleting file: %s' % fn
+            print ('Deleting file: %s' % fn)
         os.remove(fn)
 
     if verbose:
-        print sol['m']
-        print sol['n']
+        print (sol['m'])
+        print (sol['n'])
 
     models = solToModels(sol, prob_dict)
 
     if verbose:
         for cell in models:
-            print 'c: %s \t :: %s' % (str(cell), str(models[cell]['qbits']))
+            print ('c: %s \t :: %s' % (str(cell), str(models[cell]['qbits'])))
 
     return models, sol['mu']
 
@@ -523,8 +523,8 @@ def convertToModels(paths, qbits, verbose=False):
     global _adj
 
     if verbose:
-        print '\n\nStarting conversion...'
-        print 'Largest path size: %d' % (max(map(len, paths.values()))-2)
+        print ('\n\nStarting conversion...')
+        print ('Largest path size: %d' % (max(map(len, paths.values()))-2))
 
     ## generate adjacency dictionary from paths
     all_paths = preProc(paths, qbits)
@@ -546,7 +546,7 @@ def convertToModels(paths, qbits, verbose=False):
             return None, -1
     else:
         if verbose:
-            print 'No extra qubits used... assigning default models'
+            print ('No extra qubits used... assigning default models')
         # generate model parameters
         for cell in qbits:
             qbit = qbits[cell]

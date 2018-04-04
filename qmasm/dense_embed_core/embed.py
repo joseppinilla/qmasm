@@ -22,6 +22,8 @@ import itertools
 import routing as Routing
 
 
+xrange =  range
+
 #######################################################################
 ### GLOBALS ###
 SEED = None #Replace with arbitrary int for deterministic results
@@ -139,7 +141,7 @@ def writeSol(fp):
         if _qbit_flags[qbit]['taken']:
             num_qbits += 1
 
-    print 'Used %d qubits...' % num_qbits
+    print ('Used %d qubits...' % num_qbits)
 
 
 # checked
@@ -191,7 +193,7 @@ def log(txt):
 
     if LOGGING:
         if VERBOSE:
-            print txt,
+            print (txt,)
         _fp_log.write(txt)
 
 
@@ -950,9 +952,12 @@ def checkSol():
 
     check = False
 
+    print (_paths)
+    print (_qubits)
+
     if not all(map(lambda x: not x is None, _qubits.values())):
-        print _paths
-        print _qubits
+        print (_paths)
+        print (_qubits)
         raise KeyError('Not all cells were assigned a qubit')
 
     for c1 in _source:
@@ -1587,7 +1592,7 @@ def shorten_wire_paths():
 
     pre_ex = sum(map(lambda x: len(x)-2, _paths.values()))
 
-    print "There are %d cells, there are %d in qbit flags" %(len(_cells), len(_qbit_flags))
+    print ("There are %d cells, there are %d in qbit flags" %(len(_cells), len(_qbit_flags)))
     # clear qbit flags except the nodes (which do not move)
     qb_nodes = []
     for c in nodes:
@@ -1654,7 +1659,7 @@ def shorten_wire_paths():
         return (pre_ex - post_ex)
     # otherwise restore older correct mappings
     else:
-        print "Removing long paths failed, using earlier embedding"
+        print ("Removing long paths failed, using earlier embedding")
         used_qb = []
         for path in _paths.values():
             used_qb.extend(path)
@@ -1927,7 +1932,7 @@ def update_mapping(qb_wire, wire, nodes, all_paths, all_qbs):
         elif (wire[i], wire[i-1]) in all_paths:
             del all_paths[(wire[i], wire[i-1])]
         else:
-            print "ERROR: Can't find path in paths"
+            print ("ERROR: Can't find path in paths")
 
     # add new paths and qbs
     if len(qb_wire) > len(wire):
@@ -2077,7 +2082,7 @@ def denseEmbed(source, write=False):
 
             # abort on failed placement
             if qbit is None:
-                print 'No placement of cell %s found' % str(cell)
+                print ('No placement of cell %s found' % str(cell))
                 raise
 
             # assign qubit and paths
@@ -2108,7 +2113,7 @@ def denseEmbed(source, write=False):
     killLog()
 
     if WRITE and write:
-        print 'writing solution',
+        print ('writing solution',)
         try:
             if not (WRITE_PATH is None):
                 fname = WRITE_PATH
@@ -2128,7 +2133,7 @@ def denseEmbed(source, write=False):
                 writeSol(fp)
                 fp.close()
         except IOError as e:
-            print e.message
-            print 'Invalid filename: %s' % fname
+            print (e.message)
+            print ('Invalid filename: %s' % fname)
 
     return cell_map, paths
