@@ -4,6 +4,7 @@
 #########################################
 
 from collections import defaultdict
+import traceback
 try:
     from dwave_sapi2.core import async_solve_ising, await_completion
     from dwave_sapi2.embedding import find_embedding, embed_problem, unembed_answer
@@ -13,6 +14,13 @@ try:
     from dwave_sapi2.util import get_hardware_adjacency, ising_to_qubo, qubo_to_ising
 except ImportError:
     from .fake_dwave import *
+
+try:
+    from dense_embed_core.wrapper import find_dense_embedding
+except :
+    print('Could not load dense embedding method...')
+    print (traceback.print_exc())
+
 import copy
 import hashlib
 import json
@@ -249,13 +257,19 @@ def simplify_problem(logical, verbosity):
             sys.stderr.write("    Note: A complete solution can be found classically using roof duality and strongly connected components.\n\n")
     return new_obj
 
-def find_dwave_embedding(logical, optimization, verbosity, hw_adj_file):
+def find_dwave_embedding(logical, optimization, verbosity, hw_adj_file, embed_method='find_dense_embedding'):
     """Find an embedding of a logical problem in the D-Wave's physical topology.
     Store the embedding within the Problem object."""
     # SAPI tends to choke when embed_problem is told to embed a problem
     # containing a zero-weight node whose adjacent couplers all have zero
     # strength.  (Tested with SAPI 2.4.)  To help out SAPI, we simply remove
     # all zero-strength couplers.
+
+    try:
+        run_embed = globals()[embed_method]
+    except:
+        qmasm.abend("Not a valid embedding method")
+
     edges = [e for e in logical.strengths.keys() if logical.strengths[e] != 0.0]
     edges.sort()
     logical.edges = edges
@@ -364,7 +378,7 @@ def find_dwave_embedding(logical, optimization, verbosity, hw_adj_file):
                     # Child -- perform the embedding.
                     os.close(r)
                     os.dup2(w, sys.stdout.fileno())
-                    embedding = find_embedding(edges, alt_hw_adj, verbose=1)
+                    embedding = run_embed(edges, alt_hw_adj, verbose=1)
                     sys.stdout.flush()
                     os.write(w, sepLine)
                     os.write(w, json.dumps(embedding) + "\n")
@@ -389,7 +403,7 @@ def find_dwave_embedding(logical, optimization, verbosity, hw_adj_file):
                     embedding = json.loads(pipe.readline())
                     sys.stderr.write("\n")
             else:
-                embedding = find_embedding(edges, alt_hw_adj, verbose=0)
+                embedding = run_embed(edges, alt_hw_adj, verbose=0)
             ec.write(embedding)
             if len(embedding) > 0:
                 # Success!

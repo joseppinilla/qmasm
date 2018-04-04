@@ -1,0 +1,101 @@
+#########################################
+# Find the shortest path through a maze #
+# By Scott Pakin <pakin@lanl.gov>       #
+#########################################
+
+# This is a generated file.
+# Command line: ./qmasm-maze gen 3 3
+
+# Maze to solve:
+#
+#      A  B  C
+#     +--+--+--+
+#   1 |           |
+#     +  +  +--+
+#   2 |  |     |
+#     +  +--+  +
+#   3 |  |     |
+#     +  +--+--+
+
+# Truth table for a room:
+#
+#   0 0 0 0
+#   0 0 1 1
+#   0 1 0 1
+#   0 1 1 0
+#   1 0 0 1
+#   1 0 1 0
+#   1 1 0 0
+
+# Define a macro for a room that has the preceding truth table as
+# the degenerate ground state of the corresponding Hamiltonian.
+!begin_macro room
+N   0.50
+E   0.50
+S   0.50
+W   0.50
+$a1 1.00
+
+N E   0.25
+N S   0.25
+N W   0.25
+N $a1 0.50
+E S   0.25
+E W   0.25
+E $a1 0.50
+S W   0.25
+S $a1 0.50
+W $a1 0.50
+!end_macro room
+
+# Define some helpful aliases.
+!alias egress TRUE
+!alias wall   FALSE
+
+# Output in turn each room of the maze.
+
+!use_macro room A1
+A1.N := wall
+A1.W := wall
+
+!use_macro room B1
+B1.N := wall
+B1.W = A1.E
+
+!use_macro room C1
+C1.N := wall
+C1.S := wall
+C1.W = B1.E
+C1.E := egress
+
+!use_macro room A2
+A2.E := wall
+A2.W := wall
+A2.N = A1.S
+
+!use_macro room B2
+B2.S := wall
+B2.W := wall
+B2.N = B1.S
+
+!use_macro room C2
+C2.N := wall
+C2.E := wall
+C2.W = B2.E
+
+!use_macro room A3
+A3.N = A2.S
+A3.E := wall
+A3.W := wall
+A3.S := egress
+
+!use_macro room B3
+B3.N := wall
+B3.S := wall
+B3.W := wall
+
+!use_macro room C3
+C3.E := wall
+C3.S := wall
+C3.N = C2.S
+C3.W = B3.E
