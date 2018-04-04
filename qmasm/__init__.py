@@ -7,3 +7,4 @@ from .parse import *
 from .problem import *
 from .utils import *
 from .globals import *
+from .dense_embed_core import *

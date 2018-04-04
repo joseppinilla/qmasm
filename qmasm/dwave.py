@@ -266,6 +266,8 @@ def find_dwave_embedding(logical, optimization, verbosity, hw_adj_file, embed_me
     # all zero-strength couplers.
 
     try:
+        ""
+        print("Embedding with: " + embed_method)
         run_embed = globals()[embed_method]
     except:
         qmasm.abend("Not a valid embedding method")

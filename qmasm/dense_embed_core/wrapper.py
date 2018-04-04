@@ -18,7 +18,7 @@ except Exception as e:
     print (traceback.print_exc())
 
 
-DENSE_TRIALS = 1
+DENSE_TRIALS = 10
 
 def parse_chimera(edgeset, t=4):
     '''
@@ -89,7 +89,7 @@ def find_dense_embedding(Q, A, verbose=0):
     # run a number of embedding and choose the best
     embeds = []
     for trial in range(DENSE_TRIALS):
-        if verbose: print('Trial {0}...'.format(trial)),
+        if verbose: print('Trial {0}...'.format(trial))
         try:
             cell_map, paths = denseEmbed(problem_adj, write=False)
             if verbose: print('success')
@@ -110,14 +110,13 @@ def find_dense_embedding(Q, A, verbose=0):
     models, max_model = convertToModels(paths, cell_map)
     if verbose: print('done')
 
-    embedding = {}
-    utilization = set()
+    embedding = []
+
     for k in models:
         qubits = [tuple_to_linear(tup=v,M=m,N=n,index0=True) for v in models[k]['qbits']]
-        embedding[k] = qubits
-        utilization.update(qubits)
+        embedding.append(qubits)
 
-    return embedding, utilization
+    return embedding
 
 
 if __name__ == '__main__':
