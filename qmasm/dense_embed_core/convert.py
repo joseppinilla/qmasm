@@ -31,6 +31,8 @@ DEL_LP_FILE = True          # delete temp file after use
 WRITE_MAX = True                # write larger model size in header
 
 
+xrange = range
+
 ####################################################################
 ### WRITE FUNCTION
 
@@ -138,7 +140,7 @@ def addNode(ch, start=True):
     else:
         # generate new chain and key
         old_end = _chains[ch][-1] if _chains[ch] else ch[0]
-        new_end = filter(lambda x: x != old_end, _adj[ch[1]])[0]
+        new_end = list(filter(lambda x: x != old_end, _adj[ch[1]]))[0]
         new_nodes = _chains.pop(ch) + [ch[1]]
         new_key = (ch[0], new_end)
         # update _end_occ
@@ -179,7 +181,7 @@ def extendChain(ch, start=True):
 
         # check for merge condition
         if n == 2:
-            ch2 = filter(lambda x: x != ch, _end_occ[ch[i]])[0]
+            ch2 = list(filter(lambda x: x != ch, _end_occ[ch[i]]))[0]
             ch = mergeChains(ch, ch2, start=start)
         else:   # add next node from start
             ch = addNode(ch, start=start)
@@ -207,7 +209,7 @@ def extendChains(chains):
     while _chains:
 
         # select some key of _chains
-        ch = _chains.keys()[0]
+        ch = list(_chains.keys())[0]
 
         # extend the start of the chain to termination
         ch = extendChain(ch, start=True)
@@ -245,7 +247,7 @@ def formatProblem(extended_chains, qbits):
             chains.append(ch)
 
     # make list of chain node lengths
-    node_lens = map(len, chains)
+    node_lens = list(map(len, chains))
 
     # record indices for chains containing nodes
     l = len(node_lens)
@@ -279,7 +281,7 @@ def formatProblem(extended_chains, qbits):
         chain_qbits.append(chain)
 
     # store chain lengths
-    chain_lens = map(len, chain_qbits)
+    chain_lens = list(map(len, chain_qbits))
 
     # set up constraint parameters
     prob_dict = {'node_lens': node_lens,        # number of nodes in each chain
@@ -434,8 +436,8 @@ def solveLP(prob_dict, verbose):
 
     # end group sizes
     for node in end_lists:
-        ns = map(lambda x: n[x], end_lists[node]['n'])
-        ms = map(lambda x: m[x], end_lists[node]['m'])
+        ns = list(map(lambda x: n[x], end_lists[node]['n']))
+        ms = list(map(lambda x: m[x], end_lists[node]['m']))
         prob += pulp.lpSum(ns) + pulp.lpSum(ms) + 1 <= mu
 
     # average chain sizes
@@ -471,8 +473,8 @@ def solveLP(prob_dict, verbose):
 
     # store solution values
     sol = {}
-    sol['n'] = map(lambda v: pulp.value(v), n)
-    sol['m'] = map(lambda v: pulp.value(v), m)
+    sol['n'] = list(map(lambda v: pulp.value(v), n))
+    sol['m'] = list(map(lambda v: pulp.value(v), m))
     sol['mu'] = pulp.value(mu)  # for consistency check
 
     # delete solution file
@@ -530,7 +532,7 @@ def convertToModels(paths, qbits, verbose=False):
     all_paths = preProc(paths, qbits)
 
     ## get list of long chains
-    long_chains = filter(lambda x: len(_adj[x[0]][x[1]]) > 0, all_paths)
+    long_chains = list(filter(lambda x: len(_adj[x[0]][x[1]]) > 0, all_paths))
 
     models = {}
 

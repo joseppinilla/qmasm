@@ -93,7 +93,7 @@ PORT_PATH = '../bin/temp/port'
 ## LOGGING
 
 LOGGING = False
-LOG_PATH = '../bin/logs/log'
+LOG_PATH = './log.txt'
 _fp_log = None
 
 
@@ -433,12 +433,12 @@ def setVacancy():
     global _tile_occ, _vacancy
 
     # compute left/right vacancy
-    occupied = map(lambda x: x > 0, _tile_occ['c'])
+    occupied = list(map(lambda x: x > 0, _tile_occ['c']))
     left = occupied.index(True)
     right = occupied[::-1].index(True)
 
     # compute bottom/top vacancy
-    occupied = map(lambda x: x > 0, _tile_occ['r'])
+    occupied = list(map(lambda x: x > 0, _tile_occ['r']))
     bot = occupied.index(True)
     top = occupied[::-1].index(True)
 
@@ -932,7 +932,7 @@ def multiSourceSearch(srcs, adj, forb=set(), typ='Dijkstra'):
         cands = sorted(map(lambda x: [suitability(x, srcs), x], cands))[::-1]
 
         # filter out unsuitable qbits
-        cands = filter(lambda x: x[0] >= adj, cands)
+        cands = list(filter(lambda x: x[0] >= adj, cands))
 
         # select qbit
         if cands:
@@ -1156,7 +1156,7 @@ def placeCell(cell):
                 forb.update(map(lambda x: x[1], qbits))
 
     # get paths
-    paths = cp(Routing.getPaths().values())
+    paths = cp([Routing.getPaths().values()])[0]
 
     # disable path qubits
     qbs = list(set([it for path in paths for it in path]))
