@@ -109,12 +109,10 @@ def layoutToModels(cell_map):
     models = []
 
     for node in cell_map:
+        v = node[0]
+        data = node[1]
 
-        if VERBOSE:
-            print ("CELL " + str(node))
-            print (cell_map[node]['qubits'])
-
-        models.append(cell_map[node]['qubits'])
+        models.append(data['qubits'])
 
     return models
 
@@ -214,8 +212,8 @@ def setProblem(problem_adj, nodes_loc, spacing):
 
     # Iterate only through active cells
     for cell in problem_adj:
-        cell_x = nodes_loc[cell].x
-        cell_y = nodes_loc[cell].y
+        cell_x = nodes_loc[cell-1][0]
+        cell_y = nodes_loc[cell-1][1]
         degree =  len(problem_adj[cell])
 
         cell_dict = {'x' : cell_x, 'y' : cell_y, 'degree' : degree}
@@ -324,6 +322,6 @@ def layoutEmbed(configuration, stats):
     good, stats_legal = legalize(Chimera, QCA, bins, tiles, configuration)
     stats.update(stats_legal)
 
-    cell_map =  QCA.node
+    cell_map = QCA.nodes(data=True)
 
     return good, cell_map

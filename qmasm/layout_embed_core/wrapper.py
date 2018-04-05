@@ -7,9 +7,11 @@ Created on April 3, 2018
 import traceback
 import networkx as nx
 import dwave_networkx as dnx
+import qmasm
 import math
+import sys
 
-SPACING¿1
+SPACING=1
 
 try:
     from embed import layoutEmbed, layoutToModels
@@ -18,6 +20,28 @@ except Exception as e:
     print('Could not load layout embedding method...')
     print (traceback.print_exc())
 
+def linear_to_tuple(qubit,N,M,L):
+
+    qpr = 2*N*L     # qbits per row
+    qpt = 2*L       # qbits per tile
+
+    qubit -= 1
+    row, rem = divmod(qubit, qpr)
+    col, rem = divmod(rem, qpt)
+    horiz, ind = divmod(rem, L)
+
+    qubit_tuple = (row, col, horiz, ind)
+
+    return qubit_tuple
+
+def tuple_to_linear(tup, M, N, L=4, index0=False):
+    '''Convert a tuple format index of a qubit in an (N, M, L) processor
+    to linear format'''
+
+    qpr = 2*N*L     # qbits per row
+    qpt = 2*L       # qbits per tile
+
+    return (0 if index0 else 1) + qpr*tup[0]+qpt*tup[1]+L*tup[2]+tup[3]
 
 def parse_chimera(edgeset, t=4):
     '''
@@ -37,7 +61,7 @@ def parse_chimera(edgeset, t=4):
     chimera = dnx.chimera_graph(m,n,t,None,nodeset,edgeset)
 
     chimera_adj_linear = {k : [i for i in chimera.adj[k].keys()] for k in nodeset}
-    chimera_adj = {linear_to_tuple(k,m,n,t,True): [linear_to_tuple(i,m,n,t,True) for i in chimera.adj[k].keys()] for k in nodeset}
+    chimera_adj = {linear_to_tuple(k,m,n,t): [linear_to_tuple(i,m,n,t) for i in chimera.adj[k].keys()] for k in nodeset}
 
     chimera_adj_tuples = set( (u,v) for u in chimera_adj_linear for v in chimera_adj_linear[u] ) | set( (u,u) for u in chimera_adj_linear )
 
@@ -98,9 +122,9 @@ def find_layout_embedding(Q, A, **params):
 
     stats = {}
     configuration = {}
-    configuration['M'] = M
-    configuration['N'] = N
-    configuration['L'] = L
+    configuration['M'] = m
+    configuration['N'] = n
+    configuration['L'] = t
     configuration['CIRCUIT'] = 'problem'
     configuration['VERBOSE'] = True
     layoutConfiguration(configuration)
@@ -119,10 +143,12 @@ def find_layout_embedding(Q, A, **params):
         print (traceback.print_exc())
         return
 
+    models = layoutToModels(cell_map)
+
     embedding = []
 
     for k in models:
-        qubits = [tuple_to_linear(tup=v,M=m,N=n,index0=True) for v in models[k]['qbits']]
+        qubits = [tuple_to_linear(tup=v,M=m,N=n,index0=True) for v in k]
         embedding.append(qubits)
 
     return embedding
@@ -148,4 +174,4 @@ if __name__ == '__main__':
     # K3, which can only be embedded by adding a chain
     Q = [(1,2),(2,3),(1,3)]
 
-    find_dense_embedding(Q, A, verbose=0, locations=[(0,0),(0,1),(1,0)])
+    find_layout_embedding(Q, A, verbose=0, locations=[(0,0),(0,1),(1,0)])

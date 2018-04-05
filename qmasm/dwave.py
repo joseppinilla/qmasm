@@ -159,7 +159,7 @@ def read_locations(fname, verbosity):
                 qmasm.abend('Failed to parse line %d of file %s ("%s")' % (lineno, fname, orig_line.strip()))
 
             locs.append((coords[0], coords[1]))
-    return coords
+    return locs
 
 
 def read_hardware_adjacency(fname, verbosity):
