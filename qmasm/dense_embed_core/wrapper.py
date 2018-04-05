@@ -60,7 +60,7 @@ def find_dense_embedding(Q, A, **params):
     Ctrl-C, will return the best embedding found so far.)
 
     Function call:
-       embeddings = find_embedding(Q, A, **params)
+       embeddings = find_dense_embedding(Q, A, **params)
 
     Args:
         Q: Edge structures of a problem. The embedder only cares about
@@ -88,13 +88,10 @@ def find_dense_embedding(Q, A, **params):
     else:
         verbose = 0
 
-    if 'locations_file'  in params:
-        locations_file = params['locations_file']
+    if 'locations'  in params:
+        locations = params['locations']
     else:
-        locations_file = 0
-
-    print(locations_file)
-    print(verbose)
+        locations = None
 
     chimera_adj, m, n, t = parse_chimera(A)
 
@@ -155,4 +152,4 @@ if __name__ == '__main__':
     # K3, which can only be embedded by adding a chain
     Q = [(1,2),(2,3),(1,3)]
 
-    find_dense_embedding(Q, A, verbose=0, locations_file="K3.xy")
+    find_dense_embedding(Q, A, verbose=0, locations=[(0,0),(0,1),(1,0)])
