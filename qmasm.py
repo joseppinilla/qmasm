@@ -184,7 +184,8 @@ physical_ising = qmasm.embed_problem_on_dwave(logical_ising, cl_args.O,
                                               cl_args.verbose,
                                               cl_args.topology_file,
                                               cl_args.always_embed,
-                                              cl_args.embed_method)
+                                              cl_args.embed_method,
+                                              cl_args.locations_file)
 print("PHYSICAL")
 H = nx.Graph()
 H.add_edges_from(physical_ising.strengths.keys())

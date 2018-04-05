@@ -59,6 +59,10 @@ def parse_command_line():
     cl_parser.add_argument("--embed-method", choices=["dwave", "dense", "layout"],
                            default="dwave",
                            help='embedding algorithm to perform (default: "dwave")')
+    cl_parser.add_argument("--locations-file", default=None, metavar="FILE",
+                           help='name of a file describing the problem nodes locations (list of coordinate pairs)')
+
+
 
     # Parse the command line.
     cl_args = cl_parser.parse_args()

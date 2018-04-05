@@ -52,7 +52,7 @@ def parse_problem(edgeset):
     return problem_adj
 
 
-def find_dense_embedding(Q, A, verbose=0):
+def find_dense_embedding(Q, A, **params):
     """Attempts to find an embedding of a QUBO/Ising problem in a graph.
 
     This function is entirely heuristic: failure to return an embedding
@@ -72,12 +72,29 @@ def find_dense_embedding(Q, A, verbose=0):
         A: Adjacency matrix of the graph. (must be an iterable object
             containing pairs of integers representing edges)
 
-        verbose: 0/1. (must be an integer [0, 1], default = 0)
+        **params: keyword parameters for find_dense_embedding.
+
+            verbose: 0/1/2
+
+            locations: problem nodes locations (list of coordinate pairs)
 
     Returns:
         embeddings: A list of lists of embeddings. embeddings[i] is the
             list of qubits representing logical variable i. If
             the algorithm fails, the output is an empty list."""
+
+    if 'verbose'  in params:
+        verbose = params['verbose']
+    else:
+        verbose = 0
+
+    if 'locations_file'  in params:
+        locations_file = params['locations_file']
+    else:
+        locations_file = 0
+
+    print(locations_file)
+    print(verbose)
 
     chimera_adj, m, n, t = parse_chimera(A)
 
@@ -131,11 +148,11 @@ if __name__ == '__main__':
         u,v = line.split()
         A.append((int(u),int(v)))
 
-    Q = [   (0,1), (0,3), (0,2), (1,2), (1,4), (2,3), (2,4), (2,5), (3,5), (4,6), (5,6)]
+    #Q = [   (0,1), (0,3), (0,2), (1,2), (1,4), (2,3), (2,4), (2,5), (3,5), (4,6), (5,6)]
     #Q = [   (0,1), (0,3), (0,2), (3,2)]
 
 
     # K3, which can only be embedded by adding a chain
-    #Q = [(1,2),(2,3),(1,3)]
+    Q = [(1,2),(2,3),(1,3)]
 
-    find_dense_embedding(Q,A,0)
+    find_dense_embedding(Q, A, verbose=0, locations_file="K3.xy")

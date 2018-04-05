@@ -434,7 +434,10 @@ def setVacancy():
 
     # compute left/right vacancy
     occupied = list(map(lambda x: x > 0, _tile_occ['c']))
-    left = occupied.index(True)
+    try:
+        left = occupied.index(True)
+    except ValueError:
+        if VERBOSE: raise ValueError('Error in vacancy assignment')
     right = occupied[::-1].index(True)
 
     # compute bottom/top vacancy
@@ -657,7 +660,7 @@ def assignPaths(paths):
     try:
         reserveQubits(list(reserve_check))
     except KeyError:
-        raise KeyError('Qubit reservation failed during path assignment')
+        if VERBOSE: raise KeyError('Qubit reservation failed during path assignment')
 
 
 # unchecked
@@ -724,7 +727,7 @@ def reserveQubits(qbits):
 
         # check for insufficient qubits
         elif num_adj > len(qbs):
-            raise KeyError('Insufficent free qubits for cell %s' % str(cell))
+            if VERBOSE: raise KeyError('Insufficent free qubits for cell %s' % str(cell))
 
     setVacancy()
 
@@ -1073,7 +1076,7 @@ def placeCell(cell):
             # check for vacancies
             if not any(_vacancy):
                 log('No vacant columns/rows to open\n\n')
-                raise KeyError('Out of room')
+                if VERBOSE: raise KeyError('Out of room')
 
             # find available seams
             seams = availableSeams(adj_qbits)

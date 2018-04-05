@@ -141,6 +141,27 @@ def report_embeddability(edges, adj):
         sys.stderr.write("    Embedding is impossible: YES\n")
     sys.stderr.write("\n")
 
+def read_locations(fname, verbosity):
+    lineno = 0
+    locs = []
+    if verbosity >= 2:
+        sys.stderr.write("Reading nodes locations from %s ... " % fname)
+    with open(fname) as f:
+        for line in f:
+            lineno += 1
+            try:
+                coords = [int(v) for v in line.split()]
+            except ValueError:
+                qmasm.abend('Failed to parse line %d of file %s ("%s")' % (lineno, fname, orig_line.strip()))
+            if len(coords) == 0:
+                continue
+            if len(coords) != 2:
+                qmasm.abend('Failed to parse line %d of file %s ("%s")' % (lineno, fname, orig_line.strip()))
+
+            locs.append((coords[0], coords[1]))
+    return coords
+
+
 def read_hardware_adjacency(fname, verbosity):
     """Read a hardware adjacency list from a file.  Each line must contain
     a space-separated pair of vertex numbers."""
@@ -259,7 +280,7 @@ def simplify_problem(logical, verbosity):
             sys.stderr.write("    Note: A complete solution can be found classically using roof duality and strongly connected components.\n\n")
     return new_obj
 
-def find_dwave_embedding(logical, optimization, verbosity, hw_adj_file, always_embed, embed_method):
+def find_dwave_embedding(logical, optimization, verbosity, hw_adj_file, always_embed, embed_method, locations_file):
     """Find an embedding of a logical problem in the D-Wave's physical topology.
     Store the embedding within the Problem object."""
     # SAPI tends to choke when embed_problem is told to embed a problem
@@ -289,6 +310,11 @@ def find_dwave_embedding(logical, optimization, verbosity, hw_adj_file, always_e
             hw_adj = [(a, b) for a in endpoints for b in endpoints if a != b]
     else:
         hw_adj = read_hardware_adjacency(hw_adj_file, verbosity)
+
+    if locations_file == None:
+        locations = None
+    else:
+        locations = read_locations(locations_file, verbosity)
 
     # Tell the user if we have any hope at all of embedding the problem.
     if verbosity >= 2:
@@ -387,7 +413,7 @@ def find_dwave_embedding(logical, optimization, verbosity, hw_adj_file, always_e
                     # Child -- perform the embedding.
                     os.close(r)
                     os.dup2(w, sys.stdout.fileno())
-                    embedding = run_embed(edges, alt_hw_adj, verbose=1)
+                    embedding = run_embed(edges, alt_hw_adj, verbose=1, locations=locations)
                     sys.stdout.flush()
                     os.write(w, sepLine)
                     os.write(w, json.dumps(embedding) + "\n")
@@ -412,7 +438,7 @@ def find_dwave_embedding(logical, optimization, verbosity, hw_adj_file, always_e
                     embedding = json.loads(pipe.readline())
                     sys.stderr.write("\n")
             else:
-                embedding = run_embed(edges, alt_hw_adj, verbosity)
+                embedding = run_embed(edges, alt_hw_adj, verbose=verbosity, locations=locations)
             ec.write(embedding)
             if len(embedding) > 0:
                 # Success!
@@ -427,11 +453,11 @@ def find_dwave_embedding(logical, optimization, verbosity, hw_adj_file, always_e
         qmasm.abend("Failed to embed the problem")
     logical.embedding = embedding
 
-def embed_problem_on_dwave(logical, optimization, verbosity, hw_adj_file, always_embed, embed_method):
+def embed_problem_on_dwave(logical, optimization, verbosity, hw_adj_file, always_embed, embed_method, locations_file):
     """Embed a logical problem in the D-Wave's physical topology.  Return a
     physical Problem object."""
     # Embed the problem.  Abort on failure.
-    find_dwave_embedding(logical, optimization, verbosity, hw_adj_file, always_embed, embed_method)
+    find_dwave_embedding(logical, optimization, verbosity, hw_adj_file, always_embed, embed_method, locations_file)
     try:
         h_range = qmasm.solver.properties["h_range"]
         j_range = qmasm.solver.properties["j_range"]
