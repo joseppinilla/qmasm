@@ -7,7 +7,7 @@ from collections import defaultdict
 import traceback
 try:
     from dwave_sapi2.core import async_solve_ising, await_completion
-    from dwave_sapi2.embedding import find_embedding, embed_problem, unembed_answer
+    from dwave_sapi2.embedding import embed_problem, unembed_answer
     from dwave_sapi2.fix_variables import fix_variables
     from dwave_sapi2.local import local_connection
     from dwave_sapi2.remote import RemoteConnection
@@ -16,9 +16,11 @@ except ImportError:
     from .fake_dwave import *
 
 try:
-    from dense_embed_core.wrapper import find_dense_embedding
+    from dwave_sapi2.embedding import find_embedding as dwave
+    from dense_embed_core.wrapper import find_dense_embedding as dense
+    from layout_embed_core.wrapper import find_layout_embedding as layout
 except :
-    print('Could not load dense embedding method...')
+    print('Could not load embedding method...')
     print (traceback.print_exc())
 
 import copy
@@ -257,7 +259,7 @@ def simplify_problem(logical, verbosity):
             sys.stderr.write("    Note: A complete solution can be found classically using roof duality and strongly connected components.\n\n")
     return new_obj
 
-def find_dwave_embedding(logical, optimization, verbosity, hw_adj_file, embed_method='find_dense_embedding'):
+def find_dwave_embedding(logical, optimization, verbosity, hw_adj_file, always_embed, embed_method):
     """Find an embedding of a logical problem in the D-Wave's physical topology.
     Store the embedding within the Problem object."""
     # SAPI tends to choke when embed_problem is told to embed a problem
@@ -266,8 +268,8 @@ def find_dwave_embedding(logical, optimization, verbosity, hw_adj_file, embed_me
     # all zero-strength couplers.
 
     try:
-        ""
-        print("Embedding with: " + embed_method)
+        if verbosity >= 2:
+            sys.stderr.write("Embedding with: " + embed_method + "\n\n")
         run_embed = globals()[embed_method]
     except:
         qmasm.abend("Not a valid embedding method")
@@ -349,24 +351,29 @@ def find_dwave_embedding(logical, optimization, verbosity, hw_adj_file, embed_me
                 sys.stderr.write("  No embedding cache directory was specified ($QMASMCACHE).\n")
             else:
                 sys.stderr.write("  Using %s as the embedding cache directory ...\n" % ec.cachedir)
-        embedding = ec.read()
-        if embedding == []:
-            # Cache hit, but embedding had failed
-            if verbosity >= 2:
-                sys.stderr.write("  Found failed embedding %s in the embedding cache.\n\n" % ec.hash)
-        elif embedding != None:
-            # Successful cache hit!
-            if verbosity >= 2:
-                sys.stderr.write("  Found successful embedding %s in the embedding cache.\n\n" % ec.hash)
-            logical.embedding = embedding
-            return
-        if verbosity >= 2 and ec.cachedir != None:
-            sys.stderr.write("  No existing embedding found in the embedding cache.\n")
 
+        if not always_embed:
+            embedding = ec.read()
+
+            if embedding == []:
+                # Cache hit, but embedding had failed
+                if verbosity >= 2:
+                    sys.stderr.write("  Found failed embedding %s in the embedding cache.\n\n" % ec.hash)
+            elif embedding != None:
+                # Successful cache hit!
+                if verbosity >= 2:
+                    sys.stderr.write("  Found successful embedding %s in the embedding cache.\n\n" % ec.hash)
+                logical.embedding = embedding
+                return
+            if verbosity >= 2 and ec.cachedir != None:
+                sys.stderr.write("  No existing embedding found in the embedding cache.\n")
+
+        else:
+            embedding = None
         # Try to find an embedding, unless we previously determined that it had
         # failed.
         if embedding != []:
-            if verbosity >= 2:
+            if verbosity >= 2 and embed_method=='dwave':
                 # SAPI's find_embedding is hard-wired to write to stdout.
                 # Trick it into writing into a pipe instead.
                 if edgex == 0 and edgey == 0:
@@ -405,7 +412,7 @@ def find_dwave_embedding(logical, optimization, verbosity, hw_adj_file, embed_me
                     embedding = json.loads(pipe.readline())
                     sys.stderr.write("\n")
             else:
-                embedding = run_embed(edges, alt_hw_adj, verbose=0)
+                embedding = run_embed(edges, alt_hw_adj, verbosity)
             ec.write(embedding)
             if len(embedding) > 0:
                 # Success!
@@ -420,11 +427,11 @@ def find_dwave_embedding(logical, optimization, verbosity, hw_adj_file, embed_me
         qmasm.abend("Failed to embed the problem")
     logical.embedding = embedding
 
-def embed_problem_on_dwave(logical, optimization, verbosity, hw_adj_file):
+def embed_problem_on_dwave(logical, optimization, verbosity, hw_adj_file, always_embed, embed_method):
     """Embed a logical problem in the D-Wave's physical topology.  Return a
     physical Problem object."""
     # Embed the problem.  Abort on failure.
-    find_dwave_embedding(logical, optimization, verbosity, hw_adj_file)
+    find_dwave_embedding(logical, optimization, verbosity, hw_adj_file, always_embed, embed_method)
     try:
         h_range = qmasm.solver.properties["h_range"]
         j_range = qmasm.solver.properties["j_range"]
