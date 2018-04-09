@@ -143,23 +143,27 @@ def report_embeddability(edges, adj):
 
 def read_locations(fname, verbosity):
     lineno = 0
-    locs = []
+    locs_dict = {}
     if verbosity >= 2:
-        sys.stderr.write("Reading nodes locations from %s ... " % fname)
+        sys.stderr.write("Reading nodes locations from %s ... \n" % fname)
     with open(fname) as f:
         for line in f:
             lineno += 1
             try:
-                coords = [int(v) for v in line.split()]
+                node, x, y  = line.split()
+                locs_dict[node] = (x, y)
             except ValueError:
                 qmasm.abend('Failed to parse line %d of file %s ("%s")' % (lineno, fname, orig_line.strip()))
-            if len(coords) == 0:
-                continue
-            if len(coords) != 2:
-                qmasm.abend('Failed to parse line %d of file %s ("%s")' % (lineno, fname, orig_line.strip()))
 
-            locs.append((coords[0], coords[1]))
-    return locs
+    num_vars = len(qmasm.sym_map.all_numbers())
+    locations = num_vars*[None]
+    for k,v in locs_dict.items():
+        x,y = v
+        if k in qmasm.sym_map.sym2num:
+            num = qmasm.sym_map.sym2num.get(k)
+            locations[num] = [int(x),int(y)]
+
+    return locations
 
 
 def read_hardware_adjacency(fname, verbosity):
@@ -413,7 +417,7 @@ def find_dwave_embedding(logical, optimization, verbosity, hw_adj_file, always_e
                     # Child -- perform the embedding.
                     os.close(r)
                     os.dup2(w, sys.stdout.fileno())
-                    embedding = run_embed(edges, alt_hw_adj, verbose=1, locations=locations)
+                    embedding = run_embed(edges, alt_hw_adj, verbose=1)
                     sys.stdout.flush()
                     os.write(w, sepLine)
                     os.write(w, json.dumps(embedding) + "\n")
@@ -438,7 +442,10 @@ def find_dwave_embedding(logical, optimization, verbosity, hw_adj_file, always_e
                     embedding = json.loads(pipe.readline())
                     sys.stderr.write("\n")
             else:
-                embedding = run_embed(edges, alt_hw_adj, verbose=verbosity, locations=locations)
+                if embed_method=='layout':
+                    embedding = run_embed(edges, alt_hw_adj, verbose=verbosity, locations=locations)
+                else:
+                    embedding = run_embed(edges, alt_hw_adj, verbose=verbosity)
             ec.write(embedding)
             if len(embedding) > 0:
                 # Success!
@@ -452,6 +459,7 @@ def find_dwave_embedding(logical, optimization, verbosity, hw_adj_file, always_e
     if not(edgex <= M and edgey <= N):
         qmasm.abend("Failed to embed the problem")
     logical.embedding = embedding
+    sys.stdout.write(str(embedding) + '\n')
 
 def embed_problem_on_dwave(logical, optimization, verbosity, hw_adj_file, always_embed, embed_method, locations_file):
     """Embed a logical problem in the D-Wave's physical topology.  Return a

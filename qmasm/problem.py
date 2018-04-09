@@ -13,18 +13,6 @@ import qmasm
 import random
 import string
 
-def new_internal_sym():
-    "Create a new internal symbol."
-    while True:
-        sym = "$"
-        for i in range(5):
-            sym += random.choice(string.ascii_lowercase)
-        try:
-            n = qmasm.sym_map.to_number(sym)
-        except:
-            # Symbol does not yet exist.
-            return sym
-
 class DisjointSet(object):
     "Set in a disjoint-set forest"
 
@@ -107,7 +95,11 @@ class Problem(object):
     def pin_qubits(self, pin_str, chain_str):
         "Use a helper qubit to help pin values to true or false."
         for q_user, b in self.pinned:
-            q_helper = qmasm.symbol_to_number(new_internal_sym())
+            q_user_sym = qmasm.sym_map.to_symbols(q_user)
+            q_pin_sym = '$' + q_user_sym.pop()
+            #TODO: A proper solution should create aliases for q_helper
+            # if there are aliases for q_user
+            q_helper = qmasm.symbol_to_number(q_pin_sym)
             q1, q2 = q_helper, q_user
             if q1 > q2:
                 q1, q2 = q2, q1

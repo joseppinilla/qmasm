@@ -17,7 +17,7 @@ try:
     from embed import layoutEmbed, layoutToModels
     from embed import layoutConfiguration, setProblem, setTarget
 except Exception as e:
-    print('Could not load layout embedding method...')
+    sys.stderr.write('Could not load layout embedding method...')
     print (traceback.print_exc())
 
 def linear_to_tuple(qubit,N,M,L):
@@ -25,7 +25,6 @@ def linear_to_tuple(qubit,N,M,L):
     qpr = 2*N*L     # qbits per row
     qpt = 2*L       # qbits per tile
 
-    qubit -= 1
     row, rem = divmod(qubit, qpr)
     col, rem = divmod(rem, qpt)
     horiz, ind = divmod(rem, L)
@@ -34,14 +33,14 @@ def linear_to_tuple(qubit,N,M,L):
 
     return qubit_tuple
 
-def tuple_to_linear(tup, M, N, L=4, index0=False):
+def tuple_to_linear(tup, M, N, L=4):
     '''Convert a tuple format index of a qubit in an (N, M, L) processor
     to linear format'''
 
     qpr = 2*N*L     # qbits per row
     qpt = 2*L       # qbits per tile
 
-    return (0 if index0 else 1) + qpr*tup[0]+qpt*tup[1]+L*tup[2]+tup[3]
+    return 1+qpr*tup[0]+qpt*tup[1]+L*tup[2]+tup[3]
 
 def parse_chimera(edgeset, t=4):
     '''
@@ -122,24 +121,28 @@ def find_layout_embedding(Q, A, **params):
 
     stats = {}
     configuration = {}
-    configuration['M'] = m
-    configuration['N'] = n
-    configuration['L'] = t
-    configuration['CIRCUIT'] = 'problem'
-    configuration['VERBOSE'] = True
-    layoutConfiguration(configuration)
+    test_conf = {}
+    test_conf['M'] = m
+    test_conf['N'] = n
+    test_conf['L'] = t
+    test_conf['CIRCUIT'] = 'problem'
+    test_conf['VERBOSE'] = False
+    test_conf['SEED'] = 8
+    test_conf['RANDOMIZE_CANDIDATES'] = False
+    test_conf['PLOT'] = True
+    layoutConfiguration(configuration,test_conf)
 
     try:
         setProblem(problem_adj, locations, SPACING)
         setTarget(chimera_adj)
         good, cell_map = layoutEmbed(configuration, stats)
         if good:
-            print('Layout-Aware Embedding Successful')
+            sys.stderr.write('Layout-Aware Embedding Successful\n')
     except Exception as e:
         good = False
         if type(e).__name__ == 'KeyboardInterrupt':
             raise KeyboardInterrupt
-        print('Layout-Aware Embedding Failed')
+        sys.stderr.write('Layout-Aware Embedding Failed')
         print (traceback.print_exc())
         return
 
@@ -148,8 +151,9 @@ def find_layout_embedding(Q, A, **params):
     embedding = []
 
     for k in models:
-        qubits = [tuple_to_linear(tup=v,M=m,N=n,index0=True) for v in k]
+        qubits = [tuple_to_linear(tup=v,M=m,N=n) for v in k]
         embedding.append(qubits)
+
 
     return embedding
 
@@ -174,4 +178,6 @@ if __name__ == '__main__':
     # K3, which can only be embedded by adding a chain
     Q = [(1,2),(2,3),(1,3)]
 
-    find_layout_embedding(Q, A, verbose=0, locations=[(0,0),(0,1),(1,0)])
+    embedding = find_layout_embedding(Q, A, verbose=0, locations=[(0,0),(0,1),(1,0)])
+
+    print(embedding)

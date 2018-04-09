@@ -76,8 +76,6 @@ def find_dense_embedding(Q, A, **params):
 
             verbose: 0/1/2
 
-            locations: problem nodes locations (list of coordinate pairs)
-
     Returns:
         embeddings: A list of lists of embeddings. embeddings[i] is the
             list of qubits representing logical variable i. If
@@ -87,11 +85,6 @@ def find_dense_embedding(Q, A, **params):
         verbose = params['verbose']
     else:
         verbose = 0
-
-    if 'locations'  in params:
-        locations = params['locations']
-    else:
-        locations = None
 
     chimera_adj, m, n, t = parse_chimera(A)
 
@@ -152,4 +145,4 @@ if __name__ == '__main__':
     # K3, which can only be embedded by adding a chain
     Q = [(1,2),(2,3),(1,3)]
 
-    find_dense_embedding(Q, A, verbose=0, locations=[(0,0),(0,1),(1,0)])
+    find_dense_embedding(Q, A, verbose=0)

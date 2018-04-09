@@ -190,7 +190,7 @@ print("PHYSICAL")
 H = nx.Graph()
 H.add_edges_from(physical_ising.strengths.keys())
 plt.clf()
-nx.draw(G, with_labels = True)
+nx.draw(H, with_labels = True)
 plt.show()
 
 # Set all chains to the user-specified strength then combine user-specified

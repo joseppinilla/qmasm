@@ -955,9 +955,6 @@ def checkSol():
 
     check = False
 
-    print (_paths)
-    print (_qubits)
-
     if not all(map(lambda x: not x is None, _qubits.values())):
         print (_paths)
         print (_qubits)
@@ -2111,7 +2108,6 @@ def denseEmbed(source, write=False):
     checkSol()
     log('\n\n***Embedding complete\n\n')
     cell_map, paths = formatSol()
-
     logSol(cell_map, paths)
     killLog()
 
