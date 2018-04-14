@@ -45,9 +45,12 @@ def maze(n=3,m=3):
 
             # Node locatons (x,y)
             for c in cardinal:
+                #Name convention start at 1, but locations start at 0
+                x_off = i - 1
+                y_off = j - 1
 
                 node = K5_ij + '.' + c
-                loc_dict[node] = ( j*n + c_loc[c][0] , i*m + c_loc[c][1] )
+                loc_dict[node] = ( y_off*n + c_loc[c][0] , x_off*m + c_loc[c][1] )
 
                 if 'a' in c:
                     continue
@@ -55,8 +58,8 @@ def maze(n=3,m=3):
                 # Pins locations
                 pin = '$' + node
                 M.add_edge(pin, node)
-                pin_x = j*n + pin_loc[c][0]
-                pin_y = i*m + pin_loc[c][1]
+                pin_x = y_off*n + pin_loc[c][0]
+                pin_y = x_off*m + pin_loc[c][1]
                 loc_dict[pin] = ( pin_x, pin_y )
 
     return M, loc_dict

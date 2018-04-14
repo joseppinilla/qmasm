@@ -157,11 +157,13 @@ def read_locations(fname, verbosity):
 
     num_vars = len(qmasm.sym_map.all_numbers())
     locations = num_vars*[None]
+    loc_dict = {}
     for k,v in locs_dict.items():
         x,y = v
         if k in qmasm.sym_map.sym2num:
             num = qmasm.sym_map.sym2num.get(k)
             locations[num] = [int(x),int(y)]
+            loc_dict[k] = [int(x),int(y)]
 
     return locations
 

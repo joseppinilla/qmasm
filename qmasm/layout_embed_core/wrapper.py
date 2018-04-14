@@ -40,7 +40,7 @@ def tuple_to_linear(tup, M, N, L=4):
     qpr = 2*N*L     # qbits per row
     qpt = 2*L       # qbits per tile
 
-    return 1+qpr*tup[0]+qpt*tup[1]+L*tup[2]+tup[3]
+    return qpr*tup[0]+qpt*tup[1]+L*tup[2]+tup[3]
 
 def parse_chimera(edgeset, t=4):
     '''
@@ -129,7 +129,7 @@ def find_layout_embedding(Q, A, **params):
     test_conf['VERBOSE'] = False
     test_conf['SEED'] = 8
     test_conf['RANDOMIZE_CANDIDATES'] = False
-    test_conf['PLOT'] = True
+    test_conf['PLOT'] = False
     layoutConfiguration(configuration,test_conf)
 
     try:

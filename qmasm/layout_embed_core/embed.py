@@ -105,15 +105,15 @@ def partitionScale(QCA):
     return bins
 
 def layoutToModels(cell_map):
-
-    models = []
+    models = len(cell_map)*[None]
 
     for node in cell_map:
         v = node[0]
         data = node[1]
 
-        models.append(data['qubits'])
+        num = int(v[1:])
 
+        models[num] = data['qubits']
     return models
 
 def getSupply(Chimera):
