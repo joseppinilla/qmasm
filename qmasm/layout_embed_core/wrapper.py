@@ -127,9 +127,13 @@ def find_layout_embedding(Q, A, **params):
     test_conf['L'] = t
     test_conf['CIRCUIT'] = 'problem'
     test_conf['VERBOSE'] = False
-    test_conf['SEED'] = 8
-    test_conf['RANDOMIZE_CANDIDATES'] = False
+    test_conf['SEED'] = None
+    test_conf['RANDOMIZE_CANDIDATES'] = True
     test_conf['PLOT'] = False
+    test_conf['diffusion'] = {}
+    test_conf['diffusion']['ENABLE'] = True
+    test_conf['diffusion']['DELTA_T'] = 0.2
+    test_conf['diffusion']['VARIANCE_THR'] = 0.1
     layoutConfiguration(configuration,test_conf)
 
     try:

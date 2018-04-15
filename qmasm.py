@@ -169,16 +169,6 @@ if not cl_args.always_embed and cl_args.format in classical_solvers:
                             cl_args.verbose)
     sys.exit(0)
 
-import networkx as nx
-import matplotlib.pyplot as plt
-print("LOGICAL")
-G = nx.Graph()
-G.add_edges_from(logical_ising.strengths.keys())
-plt.clf()
-nx.draw(G, with_labels = True)
-plt.show()
-
-
 # Embed the problem onto the D-Wave.
 physical_ising = qmasm.embed_problem_on_dwave(logical_ising, cl_args.O,
                                               cl_args.verbose,
@@ -186,12 +176,6 @@ physical_ising = qmasm.embed_problem_on_dwave(logical_ising, cl_args.O,
                                               cl_args.always_embed,
                                               cl_args.embed_method,
                                               cl_args.locations_file)
-print("PHYSICAL")
-H = nx.Graph()
-H.add_edges_from(physical_ising.strengths.keys())
-plt.clf()
-nx.draw(H, with_labels = True)
-plt.show()
 
 # Set all chains to the user-specified strength then combine user-specified
 # chains with embedder-created chains.
