@@ -212,8 +212,8 @@ def setProblem(problem_adj, nodes_loc, spacing):
 
     # Iterate only through active cells
     for cell in problem_adj:
-        cell_x = nodes_loc[cell-1][0]
-        cell_y = nodes_loc[cell-1][1]
+        cell_x = nodes_loc[cell][0]
+        cell_y = nodes_loc[cell][1]
         degree =  len(problem_adj[cell])
 
         cell_dict = {'x' : cell_x, 'y' : cell_y, 'degree' : degree}
